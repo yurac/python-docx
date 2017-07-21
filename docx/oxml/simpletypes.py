@@ -357,6 +357,10 @@ class ST_TblLayoutType(XsdString):
             )
 
 
+class ST_MeasurementOrPercent(XsdString):
+    pass
+
+
 class ST_TblWidth(XsdString):
 
     @classmethod

@@ -13,7 +13,7 @@ from ..exceptions import InvalidSpanError
 from .ns import nsdecls, qn
 from ..shared import Emu, Twips
 from .simpletypes import (
-    ST_Merge, ST_TblLayoutType, ST_TblWidth, ST_TwipsMeasure, XsdInt
+    ST_Merge, ST_TblLayoutType, ST_MeasurementOrPercent, ST_TblWidth, ST_TwipsMeasure, XsdInt
 )
 from .xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OneOrMore, OptionalAttribute,
@@ -305,10 +305,7 @@ class CT_TblWidth(BaseOxmlElement):
     Used for ``<w:tblW>`` and ``<w:tcW>`` elements and many others, to
     specify a table-related width.
     """
-    # the type for `w` attr is actually ST_MeasurementOrPercent, but using
-    # XsdInt for now because only dxa (twips) values are being used. It's not
-    # entirely clear what the semantics are for other values like -01.4mm
-    w = RequiredAttribute('w:w', XsdInt)
+    w = RequiredAttribute('w:w', ST_MeasurementOrPercent)
     type = RequiredAttribute('w:type', ST_TblWidth)
 
     @property
@@ -317,15 +314,22 @@ class CT_TblWidth(BaseOxmlElement):
         Return the EMU length value represented by the combined ``w:w`` and
         ``w:type`` attributes.
         """
-        if self.type != 'dxa':
-            return None
-        return Twips(self.w)
+        if self.type == 'dxa':
+            return (True, Twips(int(self.w)))
+        if self.type == 'pct':
+            if self.w[-1] == "%":
+                return float(self.w[:-1])
+        return None
 
     @width.setter
     def width(self, value):
-        self.type = 'dxa'
-        self.w = Emu(value).twips
-
+        (is_absolute, val) = value
+        if is_absolute:
+            self.type = 'dxa'
+            self.w = str(Emu(val).twips)
+        else:
+            self.type = 'pct'
+            self.w = str(val) + "%"
 
 class CT_Tc(BaseOxmlElement):
     """
