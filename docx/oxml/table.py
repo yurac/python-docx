@@ -11,7 +11,7 @@ from __future__ import (
 from . import parse_xml
 from ..exceptions import InvalidSpanError
 from .ns import nsdecls, qn
-from ..shared import Emu, Twips
+from ..shared import Emu, Twips, get_col_width
 from .simpletypes import (
     ST_Merge, ST_TblLayoutType, ST_MeasurementOrPercent, ST_TblWidth, ST_TwipsMeasure, XsdInt
 )
@@ -111,12 +111,12 @@ class CT_Tbl(BaseOxmlElement):
                 yield tc
 
     @classmethod
-    def new_tbl(cls, rows, cols, width):
+    def new_tbl(cls, rows, cols, width, colspec):
         """
         Return a new `w:tbl` element having *rows* rows and *cols* columns
         with *width* distributed evenly between the columns.
         """
-        return parse_xml(cls._tbl_xml(rows, cols, width))
+        return parse_xml(cls._tbl_xml(rows, cols, width, colspec))
 
     @property
     def tblStyle_val(self):
@@ -142,8 +142,7 @@ class CT_Tbl(BaseOxmlElement):
         tblPr._add_tblStyle().val = styleId
 
     @classmethod
-    def _tbl_xml(cls, rows, cols, width):
-        col_width = Emu(width/cols) if cols > 0 else Emu(0)
+    def _tbl_xml(cls, rows, cols, width, colspec):
         return (
             '<w:tbl %s>\n'
             '  <w:tblPr>\n'
@@ -157,33 +156,34 @@ class CT_Tbl(BaseOxmlElement):
             '</w:tbl>\n'
         ) % (
             nsdecls('w'),
-            cls._tblGrid_xml(cols, col_width),
-            cls._trs_xml(rows, cols, col_width)
+            cls._tblGrid_xml(cols, width, colspec),
+            cls._trs_xml(rows, cols, width, colspec)
         )
 
     @classmethod
-    def _tblGrid_xml(cls, col_count, col_width):
+    def _tblGrid_xml(cls, col_count, width, colspec):
         xml = '  <w:tblGrid>\n'
         for i in range(col_count):
-            xml += '    <w:gridCol w:w="%d"/>\n' % col_width.twips
+            xml += '    <w:gridCol w:w="%d"/>\n' % get_col_width(i, col_count, width, colspec).twips
         xml += '  </w:tblGrid>\n'
         return xml
 
     @classmethod
-    def _trs_xml(cls, row_count, col_count, col_width):
+    def _trs_xml(cls, row_count, col_count, width, colspec):
         xml = ''
         for i in range(row_count):
             xml += (
                 '  <w:tr>\n'
                 '%s'
                 '  </w:tr>\n'
-            ) % cls._tcs_xml(col_count, col_width)
+            ) % cls._tcs_xml(col_count, width, colspec)
         return xml
 
     @classmethod
-    def _tcs_xml(cls, col_count, col_width):
+    def _tcs_xml(cls, col_count, width, colspec):
         xml = ''
         for i in range(col_count):
+            col_width = Emu(int(width * colspec[i])) if cols > 0 else Emu(0)
             xml += (
                 '    <w:tc>\n'
                 '      <w:tcPr>\n'
@@ -191,7 +191,7 @@ class CT_Tbl(BaseOxmlElement):
                 '      </w:tcPr>\n'
                 '      <w:p/>\n'
                 '    </w:tc>\n'
-            ) % col_width.twips
+            ) % get_col_width(i, col_count, width, colspec).twips
         return xml
 
 

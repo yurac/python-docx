@@ -38,14 +38,14 @@ class BlockItemContainer(Parented):
             paragraph.style = style
         return paragraph
 
-    def add_table(self, rows, cols, width):
+    def add_table(self, rows, cols, width, colspec=None):
         """
         Return a table of *width* having *rows* rows and *cols* columns,
         newly appended to the content in this container. *width* is evenly
         distributed between the table columns.
         """
         from .table import Table
-        tbl = CT_Tbl.new_tbl(rows, cols, width)
+        tbl = CT_Tbl.new_tbl(rows, cols, width, colspec)
         self._element._insert_tbl(tbl)
         return Table(tbl, self)
 

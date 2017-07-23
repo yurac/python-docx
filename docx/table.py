@@ -211,7 +211,7 @@ class _Cell(BlockItemContainer):
         """
         return super(_Cell, self).add_paragraph(text, style)
 
-    def add_table(self, rows, cols):
+    def add_table(self, rows, cols, colspec=None):
         """
         Return a table newly added to this cell after any existing cell
         content, having *rows* rows and *cols* columns. An empty paragraph is
@@ -219,7 +219,7 @@ class _Cell(BlockItemContainer):
         the last element in every cell.
         """
         width = self.width if self.width is not None else Inches(1)
-        table = super(_Cell, self).add_table(rows, cols, width)
+        table = super(_Cell, self).add_table(rows, cols, width, colspec)
         self.add_paragraph()
         return table
 

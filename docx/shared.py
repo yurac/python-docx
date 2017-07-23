@@ -248,3 +248,14 @@ class Parented(object):
         The package part containing this object
         """
         return self._parent.part
+
+
+def get_col_width(col, cols, width, colspec):
+    if cols <= 0:
+        colw = 0
+    elif colspec is None:
+        colw = width / cols
+    else:
+        colw = int(width * colspec[col])
+    colw = Emu(colw)
+    return colw
