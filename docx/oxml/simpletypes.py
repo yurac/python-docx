@@ -298,6 +298,13 @@ class ST_Merge(XsdStringEnumeration):
 
     _members = (CONTINUE, RESTART)
 
+class ST_VerticalJc(XsdStringEnumeration): 
+    TOP = 'top'
+    CENTER = 'center'
+    BOTH = 'both'
+    BOTTOM = 'bottom'
+
+    _members = (TOP, CENTER, BOTH, BOTTOM)
 
 class ST_OnOff(XsdBoolean):
 

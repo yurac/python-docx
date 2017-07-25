@@ -13,7 +13,7 @@ from ..exceptions import InvalidSpanError
 from .ns import nsdecls, qn
 from ..shared import Emu, Twips, get_col_width
 from .simpletypes import (
-    ST_Merge, ST_TblLayoutType, ST_MeasurementOrPercent, ST_TblWidth, ST_TwipsMeasure, XsdInt
+    ST_Merge, ST_VerticalJc, ST_TblLayoutType, ST_MeasurementOrPercent, ST_TblWidth, ST_TwipsMeasure, XsdInt
 )
 from .xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OneOrMore, OptionalAttribute,
@@ -459,6 +459,22 @@ class CT_Tc(BaseOxmlElement):
         tcPr.vMerge_val = value
 
     @property
+    def vAlign(self):
+        """
+        The value of the ./w:tcPr/w:vAlign/@val attribute, or |None| if the
+        w:vAlign element is not present.
+        """
+        tcPr = self.tcPr
+        if tcPr is None:
+            return None
+        return tcPr.vAlign_val
+
+    @vAlign.setter
+    def vAlign(self, value):
+        tcPr = self.get_or_add_tcPr()
+        tcPr.vAlign_val = value
+
+    @property
     def width(self):
         """
         Return the EMU length value represented in the ``./w:tcPr/w:tcW``
@@ -727,6 +743,7 @@ class CT_TcPr(BaseOxmlElement):
     tcW = ZeroOrOne('w:tcW', successors=_tag_seq[2:])
     gridSpan = ZeroOrOne('w:gridSpan', successors=_tag_seq[3:])
     vMerge = ZeroOrOne('w:vMerge', successors=_tag_seq[5:])
+    vAlign = ZeroOrOne('w:vAlign', successors=_tag_seq[12:])
     del _tag_seq
 
     @property
@@ -764,6 +781,23 @@ class CT_TcPr(BaseOxmlElement):
             self._add_vMerge().val = value
 
     @property
+    def vAlign_val(self):
+        """
+        The value of the ./w:vAlign/@val attribute, or |None| if the
+        w:vAlign element is not present.
+        """
+        vAlign = self.vAlign
+        if vAlign is None:
+            return None
+        return vAlign.val
+
+    @vAlign_val.setter
+    def vAlign_val(self, value):
+        self._remove_vAlign()
+        if value is not None:
+            self._add_vAlign().val = value
+
+    @property
     def width(self):
         """
         Return the EMU length value represented in the ``<w:tcW>`` child
@@ -785,3 +819,11 @@ class CT_VMerge(BaseOxmlElement):
     ``<w:vMerge>`` element, specifying vertical merging behavior of a cell.
     """
     val = OptionalAttribute('w:val', ST_Merge, default=ST_Merge.CONTINUE)
+
+
+class CT_VerticalJc(BaseOxmlElement):
+    """
+    ``<w:vAlign>`` element, specifying vertical alignment of a cell.
+    """
+    # FIXME: Using OptinalAttribute does not work for me here for some reason
+    val = RequiredAttribute('w:val', ST_VerticalJc)

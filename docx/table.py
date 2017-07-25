@@ -281,6 +281,14 @@ class _Cell(BlockItemContainer):
     def width(self, value):
         self._tc.width = value
 
+    @property
+    def vAlign(self):
+        return self._tc.vAlign
+
+    @vAlign.setter
+    def vAlign(self, value):
+        self._tc.vAlign = value
+
 
 class _Column(Parented):
     """
