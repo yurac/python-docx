@@ -183,7 +183,7 @@ class CT_Tbl(BaseOxmlElement):
     def _tcs_xml(cls, col_count, width, colspec):
         xml = ''
         for i in range(col_count):
-            col_width = Emu(int(width * colspec[i])) if cols > 0 else Emu(0)
+            col_width = Emu(int(width * colspec[i])) if col_count > 0 else Emu(0)
             xml += (
                 '    <w:tc>\n'
                 '      <w:tcPr>\n'
@@ -495,8 +495,15 @@ class CT_Tc(BaseOxmlElement):
         Add the width of *other_tc* to this cell. Does nothing if either this
         tc or *other_tc* does not have a specified width.
         """
-        if self.width and other_tc.width:
-            self.width += other_tc.width
+        if not self.width or not other_tc.width:
+            return
+
+        (sw_is_abs, sw_val) = self.width
+        (o_is_abs, o_val) = other_tc.width
+        if sw_is_abs != o_is_abs:
+            raise Exception("Unexpected condition")
+
+        self.width = (sw_is_abs, sw_val + o_val)
 
     @property
     def _grid_col(self):
