@@ -8,7 +8,7 @@ from . import parse_xml
 from .ns import nsdecls
 from .simpletypes import (
     ST_Coordinate, ST_DrawingElementId, ST_PositiveCoordinate,
-    ST_RelationshipId, XsdString, XsdToken
+    ST_RelationshipId, XsdInt, XsdString, XsdToken
 )
 from .xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
@@ -56,9 +56,13 @@ class CT_Inline(BaseOxmlElement):
     extent = OneAndOnlyOne('wp:extent')
     docPr = OneAndOnlyOne('wp:docPr')
     graphic = OneAndOnlyOne('a:graphic')
+    distt = OptionalAttribute('distT', XsdInt)
+    distb = OptionalAttribute('distB', XsdInt)
+    distl = OptionalAttribute('distL', XsdInt)
+    distr = OptionalAttribute('distR', XsdInt)
 
     @classmethod
-    def new(cls, cx, cy, shape_id, pic):
+    def new(cls, cx, cy, shape_id, pic, distt=0, distb=0, distl=0, distr=0):
         """
         Return a new ``<wp:inline>`` element populated with the values passed
         as parameters.
@@ -66,6 +70,10 @@ class CT_Inline(BaseOxmlElement):
         inline = parse_xml(cls._inline_xml())
         inline.extent.cx = cx
         inline.extent.cy = cy
+        inline.distt = distt
+        inline.distb = distb
+        inline.distl = distl
+        inline.distr = distr
         inline.docPr.id = shape_id
         inline.docPr.name = 'Picture %d' % shape_id
         inline.graphic.graphicData.uri = (
@@ -89,7 +97,7 @@ class CT_Inline(BaseOxmlElement):
     @classmethod
     def _inline_xml(cls):
         return (
-            '<wp:inline %s>\n'
+            '<wp:inline %s distT="0" distB="0" distL="0" distR="0">\n'
             '  <wp:extent cx="914400" cy="914400"/>\n'
             '  <wp:docPr id="666" name="unnamed"/>\n'
             '  <wp:cNvGraphicFramePr>\n'
